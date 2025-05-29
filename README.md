@@ -1,6 +1,6 @@
 # Pong AI Project
 
-A collaborative project where we implemented intelligent AI for the classic Pong game.
+A collaborative project where Olivia Skeete and Rishabh Garg implemented intelligent AI for the classic Pong game.
 
 ## Overview
 
@@ -53,8 +53,8 @@ You can find our AI logic in the `assets.py` file, particularly in the Ball and 
 
 ## Contributors
 
-- [Your Name]
-- [Your Friend's Name]
+- Olivia Skeete
+- Rishabh Garg
 
 ## License
 
