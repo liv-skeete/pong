@@ -60,10 +60,11 @@ def p1ai(paddle1_y, ball_x, ball_y, ball_x_vel, ball_y_vel):
 
       # Only move towards the ball if we're not already close
       target_y = paddle1_y + PADDLE_HGHT // 2
-      if abs(predicted_y - target_y) > PADDLE_HGHT / 2:
-        if predicted_y < target_y:
+      tolerance = PADDLE_HGHT / 3
+      if abs(predicted_y - target_y) > tolerance:
+        if predicted_y < target_y and paddle1_y > 0:
           throttle = assets.UP
-        else:
+        elif predicted_y > target_y and paddle1_y + PADDLE_HGHT < SCREEN_HGHT:
           throttle = assets.DOWN
 
     return throttle, powerup
@@ -86,10 +87,11 @@ def p2ai(paddle2_y, ball_x, ball_y, ball_x_vel, ball_y_vel):
 
     # Only move towards the ball if we're not already close
     target_y = paddle2_y + PADDLE_HGHT // 2
-    if abs(predicted_y - target_y) > PADDLE_HGHT / 2:
-      if predicted_y < target_y:
+    tolerance = PADDLE_HGHT / 3
+    if abs(predicted_y - target_y) > tolerance:
+      if predicted_y < target_y and paddle2_y > 0:
         throttle = assets.UP
-      else:
+      elif predicted_y > target_y and paddle2_y + PADDLE_HGHT < SCREEN_HGHT:
         throttle = assets.DOWN
 
   return throttle, powerup
