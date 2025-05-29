@@ -23,7 +23,6 @@ def rand_nonzero(floor, ceil):
     result = random.randint(floor, ceil)
   return result
 
-
 # Classes
 class Ball:
 
@@ -61,17 +60,16 @@ class Ball:
   def vert_bounce(self):
     self.y_vel *= -(1 + self.ACCELERATION)  # Speed up on bounce
     self.x_vel *= (1 + self.ACCELERATION)  # Speed up on bounce
-    
+
   def hori_bounce(self, momentum):
     # Bounce horizontally
     # Transfer some vertical momentum from paddle to ball
     self.x_vel *= -(1 + self.ACCELERATION)  # Speed up on bounce
     self.y_vel += 4*momentum/7 # Can't do half, in case y_vel zeroes out
-    self.y_vel *=  (1 + self.ACCELERATION) 
+    self.y_vel *=  (1 + self.ACCELERATION)
 
   def render(self, surf):
     pygame.draw.rect(surf, WHITE, self.rect())
-
 
 class Paddle:
   def __init__(self, SCREEN_WDTH, SCREEN_HGHT, PADDLE_WIDTH, PADDLE_HGHT, X):
@@ -96,22 +94,26 @@ class Paddle:
 
   def update(self, new_throttle, extendon=OFF):
     'Updates location based on velocity'
-    if new_throttle == OFF:
-      self.vel *= 0.5 # Will slow to a stop
+    # Only slow down if we're not actively moving
+    if new_throttle == OFF and self.vel > -0.1 and self.vel < 0.1:
+      self.vel *= 0.95 # Gradually slow to a stop instead of abrupt halt
     else:
-      self.vel += new_throttle*ACCELERATION
+      self.vel += new_throttle * ACCELERATION
 
-    self.vel = max(self.vel, -SPEED_CAP) # Cap on speed
-    self.vel = min(self.vel, SPEED_CAP) # Cap on speed
-    self.y += self.vel # Update according to velocity
+    # Cap speed
+    self.vel = max(self.vel, -SPEED_CAP)
+    self.vel = min(self.vel, SPEED_CAP)
+
+    # Update position with smoother acceleration
+    self.y += self.vel
     self.y = max(self.y, 0) # Top border
     self.y = min(self.y, self.SCREEN_HGHT - self.paddle_hght) # Bottom border
-    
+
     # Powerup:
     if extendon == ON and self.extend == 101: # Turn on
       self.extend -= 1
       self.paddle_hght *= 2
-    if self.extend<=100: # Decrement every round, doubles as flag
+    if self.extend <= 100: # Decrement every round, doubles as flag
       self.extend -= 1
     if self.extend == 0: # Timer runs out
       self.paddle_hght /= 2

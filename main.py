@@ -1,10 +1,10 @@
 # Pong 2.0
 # With:
-### throttle controled paddles 
+### throttle controlled paddles
 ### power-up
 ### momentum transfer
 ### random ball spawns
-### AI template 
+### AI template
 import pygame
 import assets
 
@@ -14,7 +14,7 @@ SCREEN_HGHT = 500
 BALL_SIDE = 10
 PADDLE_WDTH = 10
 PADDLE_HGHT = 100 # Initial paddle height
-ACCELERATION = 0.05 # Acc on ball at everybounce
+ACCELERATION = 0.05 # Acc on ball at every bounce
 
 # Setup
 pygame.init() # Being a game "engine", it needs to be started
@@ -24,16 +24,16 @@ font = pygame.font.SysFont("monospace", 36)
 # Model Initialization
 ball = assets.Ball(SCREEN_WDTH, SCREEN_HGHT, BALL_SIDE, ACCELERATION)
 paddle1 = assets.Paddle(
-  SCREEN_WDTH, 
+  SCREEN_WDTH,
   SCREEN_HGHT,
-  PADDLE_WDTH, 
-  PADDLE_HGHT, 
+  PADDLE_WDTH,
+  PADDLE_HGHT,
   0)
 paddle2 = assets.Paddle(
-  SCREEN_WDTH, 
+  SCREEN_WDTH,
   SCREEN_HGHT,
-  PADDLE_WDTH, 
-  PADDLE_HGHT, 
+  PADDLE_WDTH,
+  PADDLE_HGHT,
   SCREEN_WDTH-PADDLE_WDTH)
 
 p1_score = 0
@@ -43,51 +43,56 @@ p1_powerup = assets.OFF
 p2_throttle = assets.OFF
 p2_powerup = assets.OFF
 
-def p1ai(paddle1_y, ball_x, ball_y, ball_x_vel, ball_y_vel, p2_throttle, p2_powerup):
+def p1ai(paddle1_y, ball_x, ball_y, ball_x_vel, ball_y_vel):
   # This is a simple sample dummy AI, it will try to match the location of the ball
     # And it will use its powerup when its opponent uses it
     throttle = assets.OFF
     powerup = assets.OFF
+
     if ball_x_vel < 0:
       time_to_reach = abs((ball_x - PADDLE_WDTH) / ball_x_vel)
       predicted_y = ball_y + ball_y_vel * time_to_reach
       num_bounces = int(abs(predicted_y) // (SCREEN_HGHT))
       predicted_y = abs(predicted_y) % (SCREEN_HGHT)
+
       if num_bounces % 2 == 1:
         predicted_y = SCREEN_HGHT - predicted_y
-      if predicted_y < paddle1_y + PADDLE_HGHT // 2:
-        throttle = assets.UP
-      elif predicted_y > paddle1_y + PADDLE_HGHT // 2:
-        throttle = assets.DOWN
-      if time_to_reach < abs(predicted_y - paddle1_y - PADDLE_HGHT // 2) / 3.8 and time_to_reach > abs(predicted_y - paddle1_y - PADDLE_HGHT) / 3.8:
-        powerup = assets.ON
+
+      # Only move towards the ball if we're not already close
+      target_y = paddle1_y + PADDLE_HGHT // 2
+      if abs(predicted_y - target_y) > PADDLE_HGHT / 2:
+        if predicted_y < target_y:
+          throttle = assets.UP
+        else:
+          throttle = assets.DOWN
+
     return throttle, powerup
 
 # Sample P2 AI:
-def p2ai(paddle2_y, ball_x, ball_y, ball_x_vel, ball_y_vel, p1_throttle, p1_powerup):
+def p2ai(paddle2_y, ball_x, ball_y, ball_x_vel, ball_y_vel):
   # This is a simple sample dummy AI, it will try to match the location of the ball
   # And it will use its powerup when its opponent uses it
   throttle = assets.OFF
   powerup = assets.OFF
+
   if ball_x_vel > 0:
     time_to_reach = (SCREEN_WDTH-PADDLE_WDTH - ball_x ) / ball_x_vel
     predicted_y = ball_y + ball_y_vel * time_to_reach
     num_bounces = int(abs(predicted_y) // (SCREEN_HGHT))
     predicted_y = abs(predicted_y) % (SCREEN_HGHT)
+
     if num_bounces % 2 == 1:
       predicted_y = SCREEN_HGHT - predicted_y
-    if predicted_y < paddle2_y + PADDLE_HGHT // 2:
-      throttle = assets.UP
-    elif predicted_y > paddle2_y + PADDLE_HGHT // 2:
-      throttle = assets.DOWN
-    if time_to_reach < abs(predicted_y - paddle2_y - PADDLE_HGHT // 2) / 3.8 and time_to_reach > abs(predicted_y - paddle2_y - PADDLE_HGHT) / 3.8:
-      powerup = assets.ON
+
+    # Only move towards the ball if we're not already close
+    target_y = paddle2_y + PADDLE_HGHT // 2
+    if abs(predicted_y - target_y) > PADDLE_HGHT / 2:
+      if predicted_y < target_y:
+        throttle = assets.UP
+      else:
+        throttle = assets.DOWN
+
   return throttle, powerup
-
-
-# d/2 = v0t + at^2/2
-# at^2/2 + v0t - d/2 = 0
-# t = (-v0 + (v0**2 + 2*a*d)**0.5) / a
 
 game = "on"
 # Main loop
@@ -99,50 +104,32 @@ while game == "on":
   # CONTROLs
   # Manual controls
   pygame.event.pump()
-  keys = pygame.key.get_pressed() 
+  keys = pygame.key.get_pressed()
   if keys[pygame.K_w]:
     p1_throttle = assets.UP #up
   elif keys[pygame.K_s]:
     p1_throttle = assets.DOWN #down
   else: # No input detected
     p1_throttle = assets.OFF
-    
+
   if keys[pygame.K_e]:
     p1_powerup = assets.ON # use powerup
   else: # No input detected
     p1_powerup = assets.OFF
-  
-  # if keys[pygame.K_UP]:
-  #   p2_throttle = assets.UP #up
-  # if keys[pygame.K_DOWN]:
-  #   p2_throttle = assets.DOWN #down
-  # else:
-    # p2_throttle = assets.OFF
-  # if keys[pygame.K_LEFT]:
-  #   p2_powerup = assets.ON #down
-  # else:
-  #   p2_powerup = assets.OFF
-    
-  # Dummy event to prevent the trinket from disconnecting 
-  if keys[pygame.K_SPACE]:
-    pass
-    
-  '''
-  Each frame, p1_throttle and p2_throttle control if the paddle 
-  will start to accelerate up or down or not at all. This is the 
-  only way to control the paddles. 
 
-  To use them programmatically, set it to assets.OFF to do nothing. 
+  '''
+  Each frame, p1_throttle and p2_throttle control if the paddle
+  will start to accelerate up or down or not at all.
+
+  To use them programmatically, set it to assets.OFF to do nothing.
   set it to assets.UP to go up, and set it to assets.DOWN to go down.
   '''
   # Player 1 AI
-  p1_throttle, p1_powerup = p1ai(paddle1.y, ball.x, ball.y, ball.x_vel, ball.y_vel, p2_throttle, p2_powerup)
-  
+  p1_throttle, p1_powerup = p1ai(paddle1.y, ball.x, ball.y, ball.x_vel, ball.y_vel)
+
   # Player 2 AI
-  p2_throttle, p2_powerup = p2ai(paddle2.y, ball.x, ball.y, ball.x_vel, ball.y_vel, p1_throttle, p1_powerup)
+  p2_throttle, p2_powerup = p2ai(paddle2.y, ball.x, ball.y, ball.x_vel, ball.y_vel)
 
-
-  
   # Updating model
   ball.update()
   paddle1.update(p1_throttle, p1_powerup)
@@ -178,7 +165,7 @@ while game == "on":
   screen.blit(font.render(str(p1_score), 1, assets.WHITE), (3*SCREEN_WDTH//8, 50))
   screen.blit(font.render(str(p2_score), 1, assets.WHITE), (5*SCREEN_WDTH//8, 50))
 
-  pygame.display.update()  
+  pygame.display.update()
   # End of frame
 
 print(game)
