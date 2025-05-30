@@ -44,7 +44,7 @@ p2_throttle = assets.OFF
 p2_powerup = assets.OFF
 
 def p1ai(paddle1_y, ball_x, ball_y, ball_x_vel, ball_y_vel, p2_throttle, p2_powerup):
-  # Tournament-compliant AI for left paddle (identical logic to p2ai)
+  # Tournament-compliant AI for left paddle with proper deceleration
   throttle = assets.OFF
   powerup = assets.OFF
   
@@ -66,33 +66,49 @@ def p1ai(paddle1_y, ball_x, ball_y, ball_x_vel, ball_y_vel, p2_throttle, p2_powe
     # Calculate error between predicted ball position and paddle center
     error = predicted_y - paddle_center
     
-    # Use deadzone to prevent oscillation (human-like behavior)
-    if abs(error) > 12:  # Only move if significantly off target
-      if error > 0:
-        throttle = assets.DOWN
+    # Human-like movement with velocity consideration
+    # Get current paddle velocity (approximated from paddle object)
+    current_vel = paddle1.vel if hasattr(paddle1, 'vel') else 0
+    
+    # Calculate stopping distance based on current velocity and friction
+    stopping_distance = abs(current_vel) / 0.5  # 0.5 is the friction factor from assets.py
+    
+    if abs(error) > 8:  # Only move if off target
+      # If we're far from target, accelerate
+      if abs(error) > stopping_distance + 15:
+        throttle = assets.DOWN if error > 0 else assets.UP
+      # If we're close and moving toward target, coast (let friction slow us)
+      elif (error > 0 and current_vel > 0) or (error < 0 and current_vel < 0):
+        throttle = assets.OFF  # Coast to target
+      # If we're close but moving away from target, correct
       else:
-        throttle = assets.UP
+        throttle = assets.DOWN if error > 0 else assets.UP
     
     # Strategic powerup usage - only when ball is very close and we need the extra size
-    if time_to_reach < 15 and abs(error) > 30:
-      powerup = assets.ON
+    if current_vel != 0:
+      if time_to_reach < abs(error) / current_vel and time_to_reach > abs(error) / current_vel:
+        powerup = assets.ON
       
   else:  # Ball moving away - return to center position
     center_position = SCREEN_HGHT // 2
     error = center_position - paddle_center
+    current_vel = paddle1.vel if hasattr(paddle1, 'vel') else 0
+    stopping_distance = abs(current_vel) / 0.5
     
-    # Gradual return to center with deadzone
-    if abs(error) > 25:
-      if error > 0:
-        throttle = assets.DOWN
+    # Gradual return to center with velocity consideration
+    if abs(error) > 15:
+      if abs(error) > stopping_distance + 20:
+        throttle = assets.DOWN if error > 0 else assets.UP
+      elif (error > 0 and current_vel > 0) or (error < 0 and current_vel < 0):
+        throttle = assets.OFF  # Coast to center
       else:
-        throttle = assets.UP
+        throttle = assets.DOWN if error > 0 else assets.UP
   
   return throttle, powerup
 
 # Sample P2 AI:
 def p2ai(paddle2_y, ball_x, ball_y, ball_x_vel, ball_y_vel, p1_throttle, p1_powerup):
-  # Tournament-compliant AI with human-like behavior
+  # Tournament-compliant AI with proper deceleration
   throttle = assets.OFF
   powerup = assets.OFF
   
@@ -114,27 +130,43 @@ def p2ai(paddle2_y, ball_x, ball_y, ball_x_vel, ball_y_vel, p1_throttle, p1_powe
     # Calculate error between predicted ball position and paddle center
     error = predicted_y - paddle_center
     
-    # Use deadzone to prevent oscillation (human-like behavior)
-    if abs(error) > 12:  # Only move if significantly off target
-      if error > 0:
-        throttle = assets.DOWN
+    # Human-like movement with velocity consideration
+    # Get current paddle velocity (approximated from paddle object)
+    current_vel = paddle2.vel if hasattr(paddle2, 'vel') else 0
+    
+    # Calculate stopping distance based on current velocity and friction
+    stopping_distance = abs(current_vel) / 0.5  # 0.5 is the friction factor from assets.py
+    
+    if abs(error) > 8:  # Only move if off target
+      # If we're far from target, accelerate
+      if abs(error) > stopping_distance + 15:
+        throttle = assets.DOWN if error > 0 else assets.UP
+      # If we're close and moving toward target, coast (let friction slow us)
+      elif (error > 0 and current_vel > 0) or (error < 0 and current_vel < 0):
+        throttle = assets.OFF  # Coast to target
+      # If we're close but moving away from target, correct
       else:
-        throttle = assets.UP
+        throttle = assets.DOWN if error > 0 else assets.UP
     
     # Strategic powerup usage - only when ball is very close and we need the extra size
-    if time_to_reach < 15 and abs(error) > 30:
-      powerup = assets.ON
+    if current_vel != 0:
+      if time_to_reach < abs(error) / current_vel and time_to_reach > abs(error) / current_vel:
+        powerup = assets.ON
       
   else:  # Ball moving away - return to center position
     center_position = SCREEN_HGHT // 2
     error = center_position - paddle_center
+    current_vel = paddle2.vel if hasattr(paddle2, 'vel') else 0
+    stopping_distance = abs(current_vel) / 0.5
     
-    # Gradual return to center with deadzone
-    if abs(error) > 25:
-      if error > 0:
-        throttle = assets.DOWN
+    # Gradual return to center with velocity consideration
+    if abs(error) > 15:
+      if abs(error) > stopping_distance + 20:
+        throttle = assets.DOWN if error > 0 else assets.UP
+      elif (error > 0 and current_vel > 0) or (error < 0 and current_vel < 0):
+        throttle = assets.OFF  # Coast to center
       else:
-        throttle = assets.UP
+        throttle = assets.DOWN if error > 0 else assets.UP
   
   return throttle, powerup
     
@@ -144,7 +176,7 @@ game = "on"
 while game == "on":
   # Start of frame
   screen.fill((0,0,0)) # Clear frame
-  pygame.time.wait(20) # Wait 20 milliseconds
+  pygame.time.wait(2) # Wait 20 milliseconds
 
   # CONTROLs
   # Manual controls
