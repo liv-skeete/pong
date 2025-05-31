@@ -1,4 +1,4 @@
-# Pong 2.0
+# Pong 2.0 - AI Enhanced
 # With:
 ### throttle controled paddles 
 ### power-up
